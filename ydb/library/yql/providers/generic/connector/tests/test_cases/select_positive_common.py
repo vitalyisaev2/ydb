@@ -223,12 +223,12 @@ class Factory:
         schema = Schema(
             columns=ColumnList(
                 Column(
-                    name='col_int64',
+                    name='col_01_int64',
                     ydb_type=Type.INT64,
                     data_source_type=DataSourceType(ch=clickhouse.Int32(), pg=postgresql.Int8()),
                 ),
                 Column(
-                    name='col_string',
+                    name='col_02_utf8',
                     ydb_type=Type.UTF8,
                     data_source_type=DataSourceType(ch=clickhouse.String(), pg=postgresql.Text()),
                 ),
@@ -236,6 +236,15 @@ class Factory:
         )
 
         data_in = generate_table_data(schema=schema, bytes_soft_limit=table_size)
+        print("BIRD", data_in)
+
+        # Assuming that request will look something like:
+        #
+        # SELECT * FROM table WHERE id = (SELECT MAX(id) FROM table)
+        #
+        # We expect last line to be the answer
+        data_out = [data_in[-1]]
+
         data_source_kinds = [EDataSourceKind.CLICKHOUSE, EDataSourceKind.POSTGRESQL]
 
         test_case_name = 'large_table'
@@ -247,9 +256,11 @@ class Factory:
                 data_source_kind=data_source_kind,
                 protocol=EProtocol.NATIVE,
                 data_in=data_in,
-                data_out_=data_in,
+                data_out_=data_out,
                 select_what=SelectWhat.asterisk(schema.columns),
-                select_where=None,
+                select_where=SelectWhere(
+                    expression_='col_01_int64 IN (SELECT MAX(col_01_int64) FROM {cluster_name}.{table_name})'
+                ),
                 schema=schema,
                 pragmas=dict(),
             )
