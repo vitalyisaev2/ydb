@@ -1,6 +1,7 @@
 LIBRARY()
 
 SRCS(
+    utils.cpp
     yql_generic_cluster_config.cpp
     yql_generic_datasink.cpp
     yql_generic_datasink_execution.cpp
@@ -45,6 +46,7 @@ PEERDIR(
     ydb/library/yql/providers/common/provider
     ydb/library/yql/providers/common/pushdown
     ydb/library/yql/providers/common/structured_token
+    ydb/library/yql/providers/common/token_accessor/client
     ydb/library/yql/providers/common/transform
     ydb/library/yql/providers/dq/common
     ydb/library/yql/providers/dq/expr_nodes

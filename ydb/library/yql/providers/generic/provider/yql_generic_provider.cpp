@@ -6,9 +6,11 @@
 namespace NYql {
 
     TDataProviderInitializer GetGenericDataProviderInitializer(NConnector::IClient::TPtr genericClient,
-                                                               const std::shared_ptr<IDatabaseAsyncResolver> dbResolver)
+                                                               const IDatabaseAsyncResolver::TPtr& dbResolver,
+                                                               const ISecuredServiceAccountCredentialsFactory::TPtr& credentialsFactory
+                                                               )
     {
-        return [genericClient, dbResolver](const TString& userName, const TString& sessionId, const TGatewaysConfig* gatewaysConfig,
+        return [genericClient, dbResolver, credentialsFactory](const TString& userName, const TString& sessionId, const TGatewaysConfig* gatewaysConfig,
                                            const NKikimr::NMiniKQL::IFunctionRegistry* functionRegistry,
                                            TIntrusivePtr<IRandomProvider> randomProvider, TIntrusivePtr<TTypeAnnotationContext> typeCtx,
                                            const TOperationProgressWriter& progressWriter, const TYqlOperationOptions& operationOptions,
@@ -21,10 +23,13 @@ namespace NYql {
             Y_UNUSED(progressWriter);
             Y_UNUSED(operationOptions);
 
+            Y_ENSURE(genericClient);
+
             auto state = MakeIntrusive<TGenericState>(
                 typeCtx.Get(),
                 functionRegistry,
                 dbResolver,
+                credentialsFactory,
                 genericClient,
                 gatewaysConfig->GetGeneric());
 

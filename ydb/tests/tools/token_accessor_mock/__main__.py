@@ -22,7 +22,11 @@ TOKEN_ACCESSOR_HMAC_SECRET_FILE: Final = 'TOKEN_ACCESSOR_HMAC_SECRET_FILE'
 class TokenAccessor(TokenAccessorServiceServicer):
     def GetToken(self, request: GetTokenRequest, context) -> GetTokenResponse:
         logger.debug('GetToken request: %s', request)
-        return GetTokenResponse(token='token'.encode())
+        predefined_token = os.environ['TOKEN_ACCESSOR_PREDEFINED_TOKEN']
+        if predefined_token:
+            return GetTokenResponse(token=predefined_token.encode())
+        else:
+            return GetTokenResponse(token='token'.encode())
 
 
 def serve(port: int) -> None:
