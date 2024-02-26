@@ -1,7 +1,6 @@
 LIBRARY()
 
 SRCS(
-    utils.cpp
     yql_generic_cluster_config.cpp
     yql_generic_datasink.cpp
     yql_generic_datasink_execution.cpp
@@ -22,6 +21,8 @@ SRCS(
     yql_generic_settings.cpp
     yql_generic_state.h
     yql_generic_state.cpp
+    yql_generic_utils.h
+    yql_generic_utils.cpp
 )
 
 YQL_LAST_ABI_VERSION()
@@ -52,6 +53,7 @@ PEERDIR(
     ydb/library/yql/providers/dq/expr_nodes
     ydb/library/yql/providers/generic/expr_nodes
     ydb/library/yql/providers/generic/proto
+    ydb/library/yql/providers/generic/connector/api/common
     ydb/library/yql/providers/generic/connector/libcpp
     ydb/library/yql/utils/plan
 )

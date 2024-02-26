@@ -1,5 +1,5 @@
 #include "yql_generic_provider_impl.h"
-#include "utils.hpp"
+#include "yql_generic_utils.h"
 
 #include <ydb/library/yql/ast/yql_expr.h>
 #include <ydb/library/yql/core/expr_nodes/yql_expr_nodes.h>

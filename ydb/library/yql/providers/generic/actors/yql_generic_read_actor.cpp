@@ -551,17 +551,6 @@ namespace NYql::NDq {
                                         << ", use_tls=" << ToString(dsi.use_tls())
                                         << ", protocol=" << NYql::NConnector::NApi::EProtocol_Name(dsi.protocol());
 
-        // FIXME: strange piece of logic - authToken is created but not used:
-        // https://a.yandex-team.ru/arcadia/ydb/library/yql/providers/clickhouse/actors/yql_ch_read_actor.cpp?rev=r11550199#L140
-        /*
-        const auto token = secureParams.Value(params.token(), TString{});
-        const auto credentialsProviderFactory =
-            CreateCredentialsProviderFactoryForStructuredToken(credentialsFactory, token);
-        const auto authToken = credentialsProviderFactory->CreateProvider()->GetAuthInfo();
-        const auto one = token.find('#'), two = token.rfind('#');
-        YQL_ENSURE(one != TString::npos && two != TString::npos && one < two, "Bad token format:" << token);
-        */
-
         // TODO: partitioning is not implemented now, but this code will be useful for the further research:
         /*
         TStringBuilder part;
