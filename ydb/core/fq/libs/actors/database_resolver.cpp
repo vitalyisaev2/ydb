@@ -333,9 +333,11 @@ public:
             if (!isDedicatedDb && ret.Endpoint.StartsWith("ydb.")) {
                 // Replace "ydb." -> "yds."
                 ret.Endpoint[2] = 's';
+                ret.Host[2] = 's';
             }
             if (isDedicatedDb) {
                 ret.Endpoint = "u-" + ret.Endpoint;
+                ret.Host = "u-" + ret.Host;
             }
             return ret;
         };
