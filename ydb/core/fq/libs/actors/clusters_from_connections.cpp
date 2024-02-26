@@ -216,15 +216,16 @@ void AddClustersFromConnections(
         switch (conn.content().setting().connection_case()) {
         case FederatedQuery::ConnectionSetting::kYdbDatabase: {
             const auto& db = conn.content().setting().ydb_database();
-            auto* clusterCfg = gatewaysConfig.MutableYdb()->AddClusterMapping();
+            auto* clusterCfg = gatewaysConfig.MutableGeneric()->AddClusterMapping();
             clusterCfg->SetName(connectionName);
-            clusterCfg->SetId(db.database_id());
-            if (db.database())
-                clusterCfg->SetDatabase(db.database());
-            if (db.endpoint())
-                clusterCfg->SetEndpoint(db.endpoint());
-            clusterCfg->SetSecure(db.secure());
-            clusterCfg->SetAddBearerToToken(common.GetUseBearerForYdb());
+            clusterCfg->SetDatabaseId(db.database_id());
+            clusterCfg->SetUseSsl(!common.GetDisableSslForGenericDataSources());
+            // if (db.database())
+            //     clusterCfg->SetDatabase(db.database());
+            // if (db.endpoint())
+            //     clusterCfg->SetEndpoint(db.endpoint());
+            // clusterCfg->SetSecure(db.secure());
+            // clusterCfg->SetAddBearerToToken(common.GetUseBearerForYdb());
             FillClusterAuth(*clusterCfg, db.auth(), authToken, accountIdSignatures);
             clusters.emplace(connectionName, YdbProviderName);
             break;
