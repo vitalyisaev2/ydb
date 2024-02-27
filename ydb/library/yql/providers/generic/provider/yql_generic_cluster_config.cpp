@@ -357,14 +357,6 @@ namespace NYql {
                 "you must set either ('ServiceAccountId', 'ServiceAccountIdSignature') fields or 'Token' field or none of them");
         }
 
-        if ((serviceAccountId && serviceAccountIdSignature) && clusterConfig.HasCredentials()) {
-            return ValidationError(
-                clusterConfig,
-                context,
-                "'ServiceAccountId', 'ServiceAccountIdSignature' and 'Credentials' fields are set; "
-                "you must set either 'ServiceAccountId', 'ServiceAccountIdSignature' or 'Credentials'");
-        }
-
         if (clusterConfig.GetKind() == NConnector::NApi::YDB) {
             if (clusterConfig.HasDatabaseName() && clusterConfig.HasDatabaseId()) {
                 return ValidationError(
