@@ -223,7 +223,7 @@ void AddClustersFromConnections(
             clusterCfg->SetDatabaseId(db.database_id());
             clusterCfg->SetUseSsl(!common.GetDisableSslForGenericDataSources());
             FillClusterAuth(*clusterCfg, db.auth(), authToken, accountIdSignatures);
-            clusters.emplace(connectionName, YdbProviderName);
+            clusters.emplace(connectionName, GenericProviderName);
             break;
         }
         case FederatedQuery::ConnectionSetting::kClickhouseCluster: {

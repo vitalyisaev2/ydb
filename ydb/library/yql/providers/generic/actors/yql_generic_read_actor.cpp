@@ -527,8 +527,6 @@ namespace NYql::NDq {
 
         NKikimr::NMiniKQL::TPlainContainerCache ArrowRowContainerCache_;
         const NKikimr::NMiniKQL::THolderFactory& HolderFactory_;
-        // const NYql::NConnector::NApi::TSelect Select_;
-        // const NYql::NConnector::NApi::TDataSourceInstance DataSourceInstance_;
         NConnector::TSource Source_;
     };
 
