@@ -23,8 +23,6 @@ namespace NYql {
             Y_UNUSED(progressWriter);
             Y_UNUSED(operationOptions);
 
-            Y_ENSURE(genericClient);
-
             auto state = MakeIntrusive<TGenericState>(
                 typeCtx.Get(),
                 functionRegistry,

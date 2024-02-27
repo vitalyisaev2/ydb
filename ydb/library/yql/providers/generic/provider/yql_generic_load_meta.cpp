@@ -104,6 +104,7 @@ namespace NYql {
                 auto desc = emplaceIt.first->second;
                 desc->DataSourceInstance = request.data_source_instance();
 
+                Y_ENSURE(State_->GenericClient);
                 State_->GenericClient->DescribeTable(request).Subscribe(
                     [desc = std::move(desc), promise = std::move(promise)](const NConnector::TDescribeTableAsyncResult& f1) mutable {
                         NConnector::TDescribeTableAsyncResult f2(f1);
