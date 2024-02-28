@@ -93,6 +93,7 @@
 #include <util/system/user.h>
 #include <util/system/env.h>
 #include <util/system/file.h>
+#include <util/string/builder.h>
 #include <util/string/strip.h>
 
 #ifdef PROFILE_MEMORY_ALLOCATIONS
@@ -434,6 +435,7 @@ int RunMain(int argc, const char* argv[])
     TString mountConfig;
     TString mestricsPusherConfig;
     TString udfResolver;
+    TString tokenAccessorEndpoint;
     bool udfResolverFilterSyscalls = false;
     TString statFile;
     TString metricsFile;
@@ -592,6 +594,10 @@ int RunMain(int argc, const char* argv[])
                 failureInjections[key] = std::make_pair(ui32(0), FromString<ui32>(fail));
             }
         });
+    opts.AddLongOption("token-accessor-endpoint", "Network address of Token Accessor service in format grpc(s)://host:port")
+        .Optional()
+        .RequiredArgument("ENDPOINT")
+        .StoreResult(&tokenAccessorEndpoint);
     opts.AddHelpOption('h');
 
     opts.SetFreeArgsNum(0);
@@ -782,12 +788,14 @@ int RunMain(int argc, const char* argv[])
     }
 
     ISecuredServiceAccountCredentialsFactory::TPtr credentialsFactory;
-    // TODO: remove me after debug
-    credentialsFactory = NYql::CreateSecuredServiceAccountCredentialsOverTokenAccessorFactory(
-        "localhost:10000",
-        false,
-        ""
-    );
+
+    if (tokenAccessorEndpoint) {
+        TVector<TString> ss = StringSplitter(tokenAccessorEndpoint).Split("://");
+        YQL_ENSURE(ss.size() == 2, TStringBuilder() << "Invalid tokenAccessorEndpoint: " << tokenAccessorEndpoint); 
+
+        credentialsFactory = NYql::CreateSecuredServiceAccountCredentialsOverTokenAccessorFactory(ss[1], ss[0] == "grpcs", "");
+    }
+
 
     NConnector::IClient::TPtr genericClient;
     if (gatewaysConfig.HasGeneric()) {
