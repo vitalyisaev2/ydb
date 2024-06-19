@@ -990,6 +990,7 @@ class TInitialConfiguratorImpl
     , private TInitialConfiguratorDependencies
 {
     ui32 NodeId = 0;
+    std::optional<ui32> InterconnectPort = std::nullopt;
     TBasicKikimrServicesMask ServicesMask;
     TKikimrScopeId ScopeId;
     TString TenantName;
@@ -1119,6 +1120,11 @@ public:
 
             Labels["node_id"] = ToString(NodeId);
             AddLabelToAppConfig("node_id", Labels["node_id"]);
+        }
+
+        // YQ-3
+        if (cf.InterconnectPort) {
+            InterconnectPort = cf.InterconnectPort;
         }
 
         InitDebug.ConfigTransformInfo = ConfigUpdateTracer.Dump();
@@ -1314,6 +1320,7 @@ public:
     void Apply(
         NKikimrConfig::TAppConfig& appConfig,
         ui32& nodeId,
+        std::optional<ui32>& interconnectPort,
         TKikimrScopeId& scopeId,
         TString& tenantName,
         TBasicKikimrServicesMask& servicesMask,

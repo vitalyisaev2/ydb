@@ -850,7 +850,7 @@ namespace Tests {
                 if (queryServiceConfig.HasGeneric()) {
                     const auto& genericGatewayConfig = queryServiceConfig.GetGeneric();
 
-                    connectorClient = NYql::NConnector::MakeClientGRPC(genericGatewayConfig.GetConnector());
+                    connectorClient = NYql::NConnector::MakeClientGRPC(genericGatewayConfig.GetConnector(), std::nullopt);
 
                     auto httpProxyActorId = NFq::MakeYqlAnalyticsHttpProxyId();
                     Runtime->RegisterService(

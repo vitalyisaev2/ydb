@@ -34,6 +34,7 @@ int TClientCommandServer::Run(TConfig& config) {
     InitCfg.Apply(
         appConfig,
         runConfig.NodeId,
+        runConfig.InterconnectPort,
         runConfig.ScopeId,
         runConfig.TenantName,
         runConfig.ServicesMask,

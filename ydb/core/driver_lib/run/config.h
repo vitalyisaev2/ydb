@@ -15,7 +15,10 @@ namespace NKikimr {
 
 struct TKikimrRunConfig {
     NKikimrConfig::TAppConfig& AppConfig;
+
     ui32 NodeId;
+    std::optional<ui32> InterconnectPort;
+
     TKikimrScopeId ScopeId;
 
     TString PathToConfigCacheFile;
@@ -28,7 +31,8 @@ struct TKikimrRunConfig {
     NConfig::TConfigsDispatcherInitInfo ConfigsDispatcherInitInfo;
 
     TKikimrRunConfig(NKikimrConfig::TAppConfig& appConfig,
-                     ui32 nodeId = 0, const TKikimrScopeId& scopeId = {});
+                     ui32 nodeId = 0,
+                     const TKikimrScopeId& scopeId = {});
 };
 
 }

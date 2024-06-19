@@ -179,7 +179,7 @@ void Init(
 
     NYql::NConnector::IClient::TPtr connectorClient = nullptr;
     if (protoConfig.GetGateways().GetGeneric().HasConnector()) {
-        connectorClient = NYql::NConnector::MakeClientGRPC(protoConfig.GetGateways().GetGeneric().GetConnector());
+        connectorClient = NYql::NConnector::MakeClientGRPC(protoConfig.GetGateways().GetGeneric().GetConnector(), icPort);
     }
 
     if (protoConfig.GetTokenAccessor().GetEnabled()) {

@@ -63,7 +63,9 @@ namespace NKikimr::NKqp {
     TKqpFederatedQuerySetupFactoryDefault::TKqpFederatedQuerySetupFactoryDefault(
         NActors::TActorSystemSetup* setup,
         const NKikimr::TAppData* appData,
-        const NKikimrConfig::TAppConfig& appConfig) {
+        const NKikimrConfig::TAppConfig& appConfig,
+        std::optional<ui32> icPort
+        ) {
         const auto& queryServiceConfig = appConfig.GetQueryServiceConfig();
 
         // Initialize HTTP Gateway
@@ -94,7 +96,7 @@ namespace NKikimr::NKqp {
         // Initialize Connector client
         if (queryServiceConfig.HasGeneric()) {
             GenericGatewaysConfig = queryServiceConfig.GetGeneric();
-            ConnectorClient = NYql::NConnector::MakeClientGRPC(GenericGatewaysConfig.GetConnector());
+            ConnectorClient = NYql::NConnector::MakeClientGRPC(GenericGatewaysConfig.GetConnector(), icPort);
 
             if (queryServiceConfig.HasMdbTransformHost()) {
                 MdbEndpointGenerator = NFq::MakeMdbEndpointGeneratorGeneric(queryServiceConfig.GetMdbTransformHost());
@@ -146,13 +148,15 @@ namespace NKikimr::NKqp {
     IKqpFederatedQuerySetupFactory::TPtr MakeKqpFederatedQuerySetupFactory(
         NActors::TActorSystemSetup* setup,
         const NKikimr::TAppData* appData,
-        const NKikimrConfig::TAppConfig& appConfig) {
+        const NKikimrConfig::TAppConfig& appConfig,
+        std::optional<ui32> icPort
+        ) {
         // If Query Service is disabled, just do nothing
         if (!appData->FeatureFlags.GetEnableScriptExecutionOperations()) {
             return std::make_shared<TKqpFederatedQuerySetupFactoryNoop>();
         }
 
-        return std::make_shared<NKikimr::NKqp::TKqpFederatedQuerySetupFactoryDefault>(setup, appData, appConfig);
+        return std::make_shared<NKikimr::NKqp::TKqpFederatedQuerySetupFactoryDefault>(setup, appData, appConfig, icPort);
     }
 
     NMiniKQL::TComputationNodeFactory MakeKqpFederatedQueryComputeFactory(NMiniKQL::TComputationNodeFactory baseComputeFactory, const std::optional<TKqpFederatedQuerySetup>& federatedQuerySetup) {

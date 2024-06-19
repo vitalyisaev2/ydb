@@ -238,6 +238,7 @@ public:
     virtual void Apply(
         NKikimrConfig::TAppConfig& appConfig,
         ui32& nodeId,
+        std::optional<ui32>& interconnectPort,
         TKikimrScopeId& scopeId,
         TString& tenantName,
         TBasicKikimrServicesMask& servicesMask,
@@ -295,6 +296,7 @@ public:
     void Apply(
         NKikimrConfig::TAppConfig& appConfig,
         ui32& nodeId,
+        std::optional<ui32>& interconnectPort,
         TKikimrScopeId& scopeId,
         TString& tenantName,
         TBasicKikimrServicesMask& servicesMask,
@@ -304,6 +306,7 @@ public:
         Impl->Apply(
             appConfig,
             nodeId,
+            interconnectPort,
             scopeId,
             tenantName,
             servicesMask,

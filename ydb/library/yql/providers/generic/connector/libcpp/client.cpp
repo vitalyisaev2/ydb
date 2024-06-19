@@ -136,7 +136,7 @@ namespace NYql::NConnector {
         std::shared_ptr<NYdbGrpc::TServiceConnection<NApi::Connector>> GrpcConnection_;
     };
 
-    IClient::TPtr MakeClientGRPC(const NYql::TGenericConnectorConfig& cfg) {
+    IClient::TPtr MakeClientGRPC(const NYql::TGenericConnectorConfig& cfg, [[maybe_unused]] std::optional<ui32> ydbICPort) {
         return std::make_shared<TClientGRPC>(cfg);
     }
 }

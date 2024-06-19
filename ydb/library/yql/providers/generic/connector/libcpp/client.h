@@ -95,5 +95,5 @@ namespace NYql::NConnector {
         virtual ~IClient() = default;
     };
 
-    IClient::TPtr MakeClientGRPC(const NYql::TGenericConnectorConfig& cfg);
+    IClient::TPtr MakeClientGRPC(const NYql::TGenericConnectorConfig& cfg, [[maybe_unused]] std::optional<ui32> ydbICPort);
 }

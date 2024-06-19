@@ -50,7 +50,9 @@ namespace NKikimr::NKqp {
         TKqpFederatedQuerySetupFactoryDefault(
             NActors::TActorSystemSetup* setup,
             const NKikimr::TAppData* appData,
-            const NKikimrConfig::TAppConfig& appConfig);
+            const NKikimrConfig::TAppConfig& appConfig,
+            std::optional<ui32> icPort
+        );
 
         std::optional<TKqpFederatedQuerySetup> Make(NActors::TActorSystem* actorSystem) override;
 
@@ -112,7 +114,9 @@ namespace NKikimr::NKqp {
     IKqpFederatedQuerySetupFactory::TPtr MakeKqpFederatedQuerySetupFactory(
         NActors::TActorSystemSetup* setup,
         const NKikimr::TAppData* appData,
-        const NKikimrConfig::TAppConfig& config);
+        const NKikimrConfig::TAppConfig& config,
+        std::optional<ui32> icPort
+    );
 
     NMiniKQL::TComputationNodeFactory MakeKqpFederatedQueryComputeFactory(NMiniKQL::TComputationNodeFactory baseComputeFactory, const std::optional<TKqpFederatedQuerySetup>& federatedQuerySetup);
 
