@@ -1,5 +1,7 @@
 import pytest
 
+from typing import Sequence
+
 import yatest.common
 
 from ydb.library.yql.providers.generic.connector.api.common.data_source_pb2 import EDataSourceKind
@@ -27,6 +29,23 @@ tc_collection = Collection(
 
 class OneTimeWaiter:
     __launched: bool = False
+
+    __wanted_tables: Sequence[str] = [
+        "column_selection_A_b_C_d_E",
+        "column_selection_COL1",
+        "column_selection_col1",
+        "column_selection_asterisk",
+        "column_selection_col2_COL1",
+        "column_selection_col2_col1",
+        "column_selection_col2",
+        "column_selection_col3",
+        "primitives",
+        "constant",
+        "count_rows",
+        "pushdown",
+        "json",
+        "datetimes",
+    ]
 
     def __init__(self):
         docker_compose_file_relative_path = str(docker_compose_dir / 'docker-compose.yml')

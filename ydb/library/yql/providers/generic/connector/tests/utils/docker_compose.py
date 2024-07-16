@@ -159,7 +159,7 @@ class DockerComposeHelper:
 
         return result
 
-    def await_mysql(self):
+    def list_mysql_tables(self):
         params = self.docker_compose_yml_data["services"]["mysql"]
         cmd = [
             self.docker_bin_path,
@@ -181,7 +181,6 @@ class DockerComposeHelper:
         while (datetime.now() - start).total_seconds() < timeout:
             try:
                 subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode('utf8')
-                return
             except subprocess.CalledProcessError as e:
                 LOGGER.error(f"called process error: {e}")
                 err = RuntimeError(f"docker-compose error: {e.output} (code {e.returncode})")
