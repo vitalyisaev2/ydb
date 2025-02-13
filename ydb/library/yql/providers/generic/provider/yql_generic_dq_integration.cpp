@@ -108,7 +108,7 @@ namespace NYql {
             ui64 Partition(const TExprNode& node, TVector<TString>& partitions, TString*, TExprContext& ctx, const TPartitionSettings&) override {
                 if (auto maybeDqSource = TMaybeNode<TDqSource>(&node)) {
                     auto srcSettings = maybeDqSource.Cast().Settings();
-                    if (auto maybeGenSourceSettings = TMaybeNode<TGenSourceSettings>(srcSettings.Raw())) {
+                    if (auto maybeGenSourceSettings = srcSettings.Maybe<TGenSourceSettings>()) {
                         const TGenericState::TTableAddress tableAddress{
                             maybeGenSourceSettings.Cast().Cluster().StringValue(),
                             maybeGenSourceSettings.Cast().Table().StringValue()
@@ -122,6 +122,8 @@ namespace NYql {
 
                             return 0;
                         }
+
+                        Y_ENSURE(tableMeta->Splits.size() > 0, "Table has no splits");
 
                         partitions.clear();
                         for (auto split: tableMeta->Splits) {
