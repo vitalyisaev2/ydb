@@ -25,6 +25,14 @@
             ]
         },
         {
+            "Name": "TGenTable",
+            "Base": "TCallable",
+            "Match": {"Type": "Callable", "Name": "GenTable"},
+            "Children": [
+                {"Index": 0, "Name": "Name", "Type": "TCoAtom"}
+            ]
+        },
+        {
             "Name": "TGenReadTable",
             "Base": "TCallable",
             "Match": {"Type": "Callable", "Name": "GenReadTable!"},

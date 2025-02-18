@@ -47,8 +47,8 @@ namespace NYql {
             return TStatus::Ok;
         }
 
-        TStatus AnnotateFilterPredicate(const TExprNode::TPtr& input, size_t childIndex, const TStructExprType* itemType, TExprContext& ctx) {
-            if (childIndex >= input->ChildrenSize()) {
+        TStatus HandleTable(const TExprNode::TPtr& input, TExprContext& ctx) {
+            if (!EnsureArgsCount(*input, 1, ctx)) {
                 return TStatus::Error;
             }
 
@@ -57,21 +57,8 @@ namespace NYql {
                 return TStatus::Error;
             }
 
-            if (!UpdateLambdaAllArgumentsTypes(filterLambda, {itemType}, ctx)) {
-                return IGraphTransformer::TStatus::Error;
-            }
+            input->SetTypeAnn(ctx.MakeType<TUnitExprType>());
 
-            if (const auto* filterLambdaType = filterLambda->GetTypeAnn()) {
-                if (filterLambdaType->GetKind() != ETypeAnnotationKind::Data) {
-                    return IGraphTransformer::TStatus::Error;
-                }
-                const TDataExprType* dataExprType = static_cast<const TDataExprType*>(filterLambdaType);
-                if (dataExprType->GetSlot() != EDataSlot::Bool) {
-                    return IGraphTransformer::TStatus::Error;
-                }
-            } else {
-                return IGraphTransformer::TStatus::Repeat;
-            }
             return TStatus::Ok;
         }
 
@@ -108,16 +95,18 @@ namespace NYql {
                 columnSet.insert(child->Content());
             }
 
-            auto [tableMeta, issue] = State_->GetTable(clusterName, tableName, ctx.GetPosition(input->Pos()));
-            if (issue.has_value()) {
-                ctx.AddError(issue.value());
+            auto [tableMeta, issues] = State_->GetTable({clusterName, tableName});
+            if (issues) {
+                for (const auto& issue : issues) {
+                    ctx.AddError(issue);
+                }
                 return TStatus::Error;
             }
 
             // Create type annotation
             TVector<const TItemExprType*> blockRowTypeItems;
 
-            const auto structExprType = tableMeta.value()->ItemType;
+            const auto structExprType = tableMeta->ItemType;
             for (const auto& item : structExprType->GetItems()) {
                 // Filter out columns that are not required in this query
                 if (columnSet.contains(item->GetName())) {
@@ -187,14 +176,28 @@ namespace NYql {
             TString clusterName{input->Child(TGenReadTable::idx_DataSource)->Child(1)->Content()};
             TString tableName{input->Child(TGenReadTable::idx_Table)->Content()};
 
-            auto [tableMeta, issue] = State_->GetTable(clusterName, tableName, ctx.GetPosition(input->Pos()));
-            if (issue.has_value()) {
-                ctx.AddError(issue.value());
+            // Determine table name
+            const auto tableNode = input->Child(TGenReadTable::idx_Table);
+            if (!TGenTable::Match(tableNode)) {
+                ctx.AddError(TIssue(ctx.GetPosition(tableNode->Pos()),
+                                    TStringBuilder() << "Expected " << TGenTable::CallableName()));
                 return TStatus::Error;
             }
 
-            auto itemType = tableMeta.value()->ItemType;
-            auto columnOrder = tableMeta.value()->ColumnOrder;
+            TGenTable table(tableNode);
+            const auto tableName = table.Name().StringValue();
+
+            // Extract table metadata
+            auto [tableMeta, issues] = State_->GetTable({clusterName, tableName});
+            if (issues) {
+                for (const auto& issue : issues) {
+                    ctx.AddError(issue);
+                }
+                return TStatus::Error;
+            }
+
+            auto itemType = tableMeta->ItemType;
+            auto columnOrder = tableMeta->ColumnOrder;
 
             if (columnSet) {
                 YQL_CLOG(INFO, ProviderGeneric) << "custom column set" << ColumnSetToString(*columnSet.Get());
