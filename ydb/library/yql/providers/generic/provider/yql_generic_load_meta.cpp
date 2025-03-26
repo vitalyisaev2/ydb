@@ -49,6 +49,7 @@ namespace NYql {
         }
 
         TStatus DoTransform(TExprNode::TPtr input, TExprNode::TPtr& output, TExprContext& ctx) final {
+            Cout << "DoTransform" << Endl;
             output = input;
 
             if (ctx.Step.IsDone(TExprStep::LoadTablesMetadata)) {
@@ -112,6 +113,7 @@ namespace NYql {
     private:
         void LoadTableMetadataFromConnector(const TGenericState::TTableAddress& tableAddress,
                                             std::vector<NThreading::TFuture<void>>& handles) {
+            Cout << "LoadTableMetadataFromConnector " << tableAddress.ToString() << Endl;
             const auto it = State_->Configuration->ClusterNamesToClusterConfigs.find(tableAddress.ClusterName);
             YQL_ENSURE(State_->Configuration->ClusterNamesToClusterConfigs.cend() != it,
                        "cluster not found: " << tableAddress.ClusterName);
@@ -136,11 +138,14 @@ namespace NYql {
                     NConnector::TDescribeTableAsyncResult f2(f1);
                     auto result = f2.ExtractValueSync();
 
+                    Cout << "DescribeTable start " << tableAddress.ToString() << Endl;
+
                     // Check transport error
                     if (!result.Status.Ok()) {
                         desc->Issues.AddIssue(TStringBuilder()
                                               << "Call DescribeTable for table " << tableAddress.ToString() << ": "
                                               << result.Status.ToDebugString());
+                        Cout << "DescribeTable error 1: " << result.Status.ToDebugString() << Endl;
                         promise.SetValue();
                         return;
                     }
@@ -150,6 +155,7 @@ namespace NYql {
                         desc->Issues.AddIssues(NConnector::ErrorToIssues(
                             result.Response->error(),
                             TStringBuilder() << "Call DescribeTable for table " << tableAddress.ToString() << ": "));
+                        Cout << "DescribeTable error 2: " << result.Status.ToDebugString() << Endl;
                         promise.SetValue();
                         return;
                     }
@@ -163,11 +169,15 @@ namespace NYql {
                     *select->mutable_data_source_instance() = desc->DataSourceInstance;
                     select->mutable_from()->set_table(tableAddress.TableName);
 
+                    Cout << "DescribeTable OK " << tableAddress.ToString() << Endl;
+
                     client->ListSplits(request).Subscribe(
                         [desc, promise,
                          tableAddress](const NConnector::TListSplitsStreamIteratorAsyncResult f3) mutable {
                             NConnector::TListSplitsStreamIteratorAsyncResult f4(f3);
                             auto streamIterResult = f4.ExtractValueSync();
+
+                        Cout << "ListSplits start " << tableAddress.ToString() << Endl;
 
                             // Check transport error
                             if (!streamIterResult.Status.Ok()) {
@@ -175,6 +185,7 @@ namespace NYql {
                                                       << "Call ListSplits for table " << tableAddress.ToString() << ": "
                                                       << streamIterResult.Status.ToDebugString());
                                 promise.SetValue();
+                                Cout << "ListSplits error 1: " << streamIterResult.Status.ToDebugString() << Endl;
                                 return;
                             }
 
@@ -182,6 +193,8 @@ namespace NYql {
 
                             auto drainer =
                                 NConnector::MakeListSplitsStreamIteratorDrainer(std::move(streamIterResult.Iterator));
+
+                            Cout << "ListSplits OK " << tableAddress.ToString() << Endl;
 
                             drainer->Run().Subscribe([desc,
                                                       promise,
@@ -193,6 +206,8 @@ namespace NYql {
                                 NThreading::TFuture<NConnector::TListSplitsStreamIteratorDrainer::TBuffer> f6(f5);
                                 auto drainerResult = f6.ExtractValueSync();
 
+                                Cout << "Drainer start " << tableAddress.ToString() << Endl;
+
                                 // check transport and logical errors
                                 if (drainerResult.Issues) {
                                     TIssue dstIssue(TStringBuilder() << "Call ListSplits for table " << tableAddress.ToString());
@@ -200,6 +215,7 @@ namespace NYql {
                                         dstIssue.AddSubIssue(MakeIntrusive<TIssue>(srcIssue));
                                     };
                                     desc->Issues.AddIssue(std::move(dstIssue));
+                                    Cout << "Drainer error 1: " << drainerResult.Issues.ToString() << Endl;
                                     promise.SetValue();
                                     return;
                                 }
@@ -212,6 +228,7 @@ namespace NYql {
                                                    [](auto&& split) { return std::move(split); });
                                 }
 
+                                Cout << "Drainer OK " << tableAddress.ToString() << Endl;
                                 promise.SetValue();
                             });
                         });
@@ -220,12 +237,14 @@ namespace NYql {
 
     public:
         NThreading::TFuture<void> DoGetAsyncFuture(const TExprNode&) final {
+            Cout << "DoGetAsyncFuture" << Endl;
             return AsyncFuture_;
         }
 
         // TODO: for some reason engine calls this function more than once.
         // It worth adding some checks to avoid multiple data copying.
         TStatus DoApplyAsyncChanges(TExprNode::TPtr input, TExprNode::TPtr& output, TExprContext& ctx) final {
+            Cout << "DoApplyAsyncChanges" << Endl;
             AsyncFuture_.GetValue();
 
             const auto& reads = FindNodes(input, [&](const TExprNode::TPtr& node) {

@@ -110,6 +110,8 @@ namespace NYql::NConnector {
             using TStreamProcessorPtr = typename NYdbGrpc::IStreamRequestReadProcessor<TResponse>::TPtr;
             using TStreamInitResult = std::pair<NYdbGrpc::TGrpcStatus, TStreamProcessorPtr>;
 
+            Cout << "ServerSideStreamingCall start" << request.DebugString() << Endl;
+
             auto promise = NThreading::NewPromise<TStreamInitResult>();
 
             auto context = GrpcClient_->CreateContext();
@@ -119,7 +121,8 @@ namespace NYql::NConnector {
 
             GrpcConnection_->DoStreamRequest<TRequest, TResponse>(
                 request,
-                [context, promise](NYdbGrpc::TGrpcStatus&& status, TStreamProcessorPtr streamProcessor) mutable {
+                [context, promise, request](NYdbGrpc::TGrpcStatus&& status, TStreamProcessorPtr streamProcessor) mutable {
+                    Cout << "ServerSideStreamingCall callback" << request.DebugString() << Endl;
                     promise.SetValue({std::move(status), streamProcessor});
                 },
                 rpc,
@@ -137,6 +140,7 @@ namespace NYql::NConnector {
                 return NThreading::MakeFuture<TIteratorResult<IStreamIterator<TResponse>>>({std::move(status), std::move(it)});
             }
 
+            Cout << "ServerSideStreamingCall exit" << request.DebugString() << Endl;
             return NThreading::MakeFuture<TIteratorResult<IStreamIterator<TResponse>>>({std::move(status), nullptr});
         }
 
