@@ -32,10 +32,10 @@ public:
     {}
 
     void MarkupPredicates(const TExprBase& predicate, TPredicateNode& predicateTree) {
-        Cout << "MarkupPredicates: " << NCommon::ExprToPrettyString(Ctx, predicate.Ref()) << Endl; 
+        Cout << "\n\nMarkupPredicates: " << NCommon::ExprToPrettyString(Ctx, predicate.Ref()) << Endl; 
 
         if (auto coalesce = predicate.Maybe<TCoCoalesce>()) {
-            Cout << "Branch: TCoCoalesce" << Endl;
+            Cout << "MarkupPredicates: TCoCoalesce" << Endl;
             if (Settings.IsEnabled(EFlag::JustPassthroughOperators)) {
                 Cout << "  Sub-branch: JustPassthroughOperators enabled" << Endl;
                 CollectChildrenPredicates(predicate, predicateTree);
@@ -44,13 +44,13 @@ public:
                 predicateTree.CanBePushed = CoalesceCanBePushed(coalesce.Cast());
             }
         } else if (auto compare = predicate.Maybe<TCoCompare>()) {
-            Cout << "Branch: TCoCompare" << Endl;
+            Cout << "MarkupPredicates: TCoCompare" << Endl;
             predicateTree.CanBePushed = CompareCanBePushed(compare.Cast());
         } else if (auto exists = predicate.Maybe<TCoExists>()) {
-            Cout << "Branch: TCoExists" << Endl;
+            Cout << "MarkupPredicates: TCoExists" << Endl;
             predicateTree.CanBePushed = ExistsCanBePushed(exists.Cast());
         } else if (auto notOp = predicate.Maybe<TCoNot>()) {
-            Cout << "Branch: TCoNot" << Endl;
+            Cout << "MarkupPredicates: TCoNot" << Endl;
             const auto value = notOp.Cast().Value();
             TPredicateNode child(value);
             MarkupPredicates(value, child);
@@ -58,39 +58,40 @@ public:
             predicateTree.CanBePushed = child.CanBePushed;
             predicateTree.Children.emplace_back(child);
         } else if (predicate.Maybe<TCoAnd>()) {
-            Cout << "Branch: TCoAnd" << Endl;
+            Cout << "MarkupPredicates: TCoAnd" << Endl;
             predicateTree.Op = EBoolOp::And;
             CollectChildrenPredicates(predicate, predicateTree);
         } else if (predicate.Maybe<TCoOr>()) {
-            Cout << "Branch: TCoOr" << Endl;
+            Cout << "MarkupPredicates: TCoOr" << Endl;
             predicateTree.Op = EBoolOp::Or;
             CollectChildrenPredicates(predicate, predicateTree);
         } else if (Settings.IsEnabled(EFlag::LogicalXorOperator) && predicate.Maybe<TCoXor>()) {
-            Cout << "Branch: TCoXor (LogicalXorOperator enabled)" << Endl;
+            Cout << "MarkupPredicates: TCoXor (LogicalXorOperator enabled)" << Endl;
             predicateTree.Op = EBoolOp::Xor;
             CollectChildrenPredicates(predicate, predicateTree);
         } else if (auto jsonExists = predicate.Maybe<TCoJsonExists>()) {
-            Cout << "Branch: TCoJsonExists" << Endl;
+            Cout << "MarkupPredicates: TCoJsonExists" << Endl;
             predicateTree.CanBePushed = JsonExistsCanBePushed(jsonExists.Cast());
         } else if (Settings.IsEnabled(EFlag::JustPassthroughOperators) && (predicate.Maybe<TCoIf>() || predicate.Maybe<TCoJust>())) {
-            Cout << "Branch: TCoIf or TCoJust (JustPassthroughOperators enabled)" << Endl;
+            Cout << "MarkupPredicates: TCoIf or TCoJust (JustPassthroughOperators enabled)" << Endl;
             CollectChildrenPredicates(predicate, predicateTree);
         } else if (auto sqlIn = predicate.Maybe<TCoSqlIn>()) {
-            Cout << "Branch: TCoSqlIn" << Endl;
+            Cout << "MarkupPredicates: TCoSqlIn" << Endl;
             predicateTree.CanBePushed = SqlInCanBePushed(sqlIn.Cast());
         } else if (predicate.Ref().IsCallable({"IsNotDistinctFrom", "IsDistinctFrom"})) {
-            Cout << "Branch: IsNotDistinctFrom or IsDistinctFrom" << Endl;
+            Cout << "MarkupPredicates: IsNotDistinctFrom or IsDistinctFrom" << Endl;
             predicateTree.CanBePushed = IsDistinctCanBePushed(predicate);
         } else if (auto apply = predicate.Maybe<TCoApply>()) {
-            Cout << "Branch: TCoApply" << Endl;
+            Cout << "MarkupPredicates: TCoApply" << Endl;
             predicateTree.CanBePushed = ApplyCanBePushed(apply.Cast());
         } else if (Settings.IsEnabled(EFlag::ExpressionAsPredicate)) {
-            Cout << "Branch: ExpressionAsPredicate enabled" << Endl;
+            Cout << "MarkupPredicates: ExpressionAsPredicate enabled" << Endl;
             predicateTree.CanBePushed = CheckExpressionNodeForPushdown(predicate);
         } else {
-            Cout << "Branch: Default (no matching predicate type)" << Endl;
+            Cout << "MarkupPredicates: Default (no matching predicate type)" << Endl;
             predicateTree.CanBePushed = false;
         }
+        Cout << "MarkupPredicates: CanBePushed = " << (predicateTree.CanBePushed ? "true" : "false") << Endl;
     }
 
     void CollectChildrenPredicates(const TExprBase& node, TPredicateNode& predicateTree) {
@@ -329,70 +330,106 @@ private:
     }
 
     bool CheckExpressionNodeForPushdown(const TExprBase& node) {
+        Cout << "CheckExpressionNodeForPushdown: " << NCommon::ExprToPrettyString(Ctx, node.Ref()) << Endl;
+
         if (auto maybeSafeCast = node.Maybe<TCoSafeCast>()) {
+            Cout << "CheckExpressionNodeForPushdown: TCoSafeCast" << Endl;
             return IsSupportedSafeCast(maybeSafeCast.Cast());
         }
         if (node.Ref().IsCallable({"ToBytes"})) {
+            Cout << "CheckExpressionNodeForPushdown: ToBytes" << Endl;
             return IsSupportedToBytes(node);
         }
         if (node.Ref().IsCallable({"ToString"})) {
+            Cout << "CheckExpressionNodeForPushdown: ToString" << Endl;
             return IsSupportedToString(node);
         }
         if (auto maybeData = node.Maybe<TCoDataCtor>()) {
+            Cout << "CheckExpressionNodeForPushdown: TCoDataCtor" << Endl;
             return IsSupportedDataType(maybeData.Cast());
         }
         if (auto maybeMember = node.Maybe<TCoMember>()) {
+            Cout << "CheckExpressionNodeForPushdown: TCoMember" << Endl;
             return IsMemberColumn(maybeMember.Cast());
         }
         if (Settings.IsEnabled(EFlag::JsonQueryOperators) && node.Maybe<TCoJsonQueryBase>()) {
+            Cout << "CheckExpressionNodeForPushdown: TCoJsonQueryBase (JsonQueryOperators enabled)" << Endl;
             if (!node.Maybe<TCoJsonValue>()) {
+                Cout << "CheckExpressionNodeForPushdown: Not TCoJsonValue, returning false" << Endl;
                 return false;
             }
 
             // Currently we support only simple columns in pushdown
             const auto jsonOp = node.Cast<TCoJsonQueryBase>();
-            return jsonOp.Json().Maybe<TCoMember>() && jsonOp.JsonPath().Maybe<TCoUtf8>();
+            bool result = jsonOp.Json().Maybe<TCoMember>() && jsonOp.JsonPath().Maybe<TCoUtf8>();
+            Cout << "CheckExpressionNodeForPushdown: Checking Json is TCoMember and JsonPath is TCoUtf8, result: " << (result ? "true" : "false") << Endl;
+            return result;
         }
         if (node.Maybe<TCoNull>()) {
+            Cout << "CheckExpressionNodeForPushdown: TCoNull" << Endl;
             return true;
         }
         if (Settings.IsEnabled(EFlag::ParameterExpression) && node.Maybe<TCoParameter>()) {
+            Cout << "CheckExpressionNodeForPushdown: TCoParameter (ParameterExpression enabled)" << Endl;
             return true;
         }
         if (const auto op = node.Maybe<TCoUnaryArithmetic>(); op && Settings.IsEnabled(EFlag::UnaryOperators)) {
+            Cout << "CheckExpressionNodeForPushdown: TCoUnaryArithmetic (UnaryOperators enabled)" << Endl;
             return CheckExpressionNodeForPushdown(op.Cast().Arg());
         }
         if (const auto op = node.Maybe<TCoBinaryArithmetic>(); op && Settings.IsEnabled(EFlag::ArithmeticalExpressions)) {
+            Cout << "CheckExpressionNodeForPushdown: TCoBinaryArithmetic (ArithmeticalExpressions enabled)" << Endl;
             if (!Settings.IsEnabled(EFlag::DivisionExpressions) && (op.Maybe<TCoDiv>() || op.Maybe<TCoMod>())) {
+                Cout << "  Sub-branch: TCoDiv or TCoMod with DivisionExpressions disabled, returning false" << Endl;
                 return false;
             }
-            return CheckExpressionNodeForPushdown(op.Cast().Left()) && CheckExpressionNodeForPushdown(op.Cast().Right());
+            bool leftResult = CheckExpressionNodeForPushdown(op.Cast().Left());
+            bool rightResult = CheckExpressionNodeForPushdown(op.Cast().Right());
+            Cout << "  Sub-branch: Checking Left and Right expressions, result: " << ((leftResult && rightResult) ? "true" : "false") << Endl;
+            return leftResult && rightResult;
         }
         if (Settings.IsEnabled(EFlag::JustPassthroughOperators) && (node.Maybe<TCoCoalesce>() || node.Maybe<TCoJust>())) {
+            Cout << "CheckExpressionNodeForPushdown: TCoCoalesce or TCoJust (JustPassthroughOperators enabled)" << Endl;
             for (const auto& childNodePtr : node.Ref().Children()) {
                 if (!CheckExpressionNodeForPushdown(TExprBase(childNodePtr))) {
+                    Cout << "  Sub-branch: Child node check failed, returning false" << Endl;
                     return false;
                 }
             }
+            Cout << "  Sub-branch: All child nodes passed, returning true" << Endl;
             return true;
         }
         if (const auto maybeIf = node.Maybe<TCoIf>(); maybeIf && Settings.IsEnabled(EFlag::JustPassthroughOperators)) {
+            Cout << "CheckExpressionNodeForPushdown: TCoIf (JustPassthroughOperators enabled)" << Endl;
             const auto& sqlIf = maybeIf.Cast();
             const auto& predicate = sqlIf.Predicate();
 
             // Check if predicate pushdown
             TPredicateNode ifPredicate(predicate);
+            Cout << "  Sub-branch: Checking predicate with MarkupPredicates" << Endl;
             MarkupPredicates(predicate, ifPredicate);
 
             // Check if expressions pushdown
-            return ifPredicate.CanBePushed
-                && CheckExpressionNodeForPushdown(sqlIf.ThenValue())
-                && CheckExpressionNodeForPushdown(sqlIf.ElseValue());
+            bool predicateResult = ifPredicate.CanBePushed;
+            bool thenResult = CheckExpressionNodeForPushdown(sqlIf.ThenValue());
+            bool elseResult = CheckExpressionNodeForPushdown(sqlIf.ElseValue());
+            bool finalResult = predicateResult && thenResult && elseResult;
+            
+            Cout << "CheckExpressionNodeForPushdown: Predicate: " << (predicateResult ? "true" : "false")
+                 << ", Then: " << (thenResult ? "true" : "false")
+                 << ", Else: " << (elseResult ? "true" : "false")
+                 << ", Final: " << (finalResult ? "true" : "false") << Endl;
+                 
+            return finalResult;
         }
         if (auto flatMap = node.Maybe<TCoFlatMap>()) {
+            Cout << "CheckExpressionNodeForPushdown: TCoFlatMap" << Endl;
             return IsSupportedFlatMap(flatMap.Cast());
         }
-        return IsLambdaArgument(node);
+        
+        bool result = IsLambdaArgument(node);
+        Cout << "CheckExpressionNodeForPushdown: Default (IsLambdaArgument), result: " << (result ? "true" : "false") << Endl;
+        return result;
     }
 
 private:
@@ -659,20 +696,69 @@ private:
         return false;
     }
 
+    /*
+    (
+        return (
+            Apply (
+                AssumeStrict (
+                    Udf '"Re2.Match" '(
+                        (
+                            Apply $5 ( String '"a%b_c_%d")
+                        )
+                        (
+                            Just (
+                                NamedApply $11 '() (
+                                    AsStruct '(
+                                        '"CaseSensitive" (
+                                            Just ( Bool '"true")
+                                                         )
+                                              )
+                                                   )
+                                 )
+                        )
+                    ) 
+                        (VoidType) '"" $12 (
+                            TupleType $1 (
+                                OptionalType $8)) '"" '())) (Member _FreeArg0 '"col_01_string")))
+    */
+
     bool ApplyCanBePushed(const TCoApply& apply) {
+        Cout << "ApplyCanBePushed: start: " << NCommon::ExprToPrettyString(Ctx, apply.Ref()) << Endl;
+
+        // Cout << "OLOLO: " << apply.Raw()->IsCallable("AssumeStrict") << Endl;
+        // Cout << "OLOLO: " << apply.Raw()->Head().IsCallable("AssumeStrict") << Endl;
+        TMaybeNode<TCoUdf> udf;
+        Cout << "A1: " << udf.IsValid() << Endl;
+
+        if (auto assumeStrict = apply.Raw()->Head().IsCallable("AssumeStrict") ) {
+            // Cout << "ApplyCanBePushed: AssumeStrict" << Endl;
+            if (udf = TMaybeNode<TCoUdf>(apply.Raw()->Head().Child(0))) {
+                Cout << "A2: " << udf.IsValid() << Endl;
+                return false;
+            };
+
+            return false;
+        }
+
         // Check callable
         if (auto udf = apply.Callable().Maybe<TCoUdf>()) {
-            if (!UdfCanBePushed(udf.Cast(), apply.Ref().ChildrenList())) {
+            // Cout << "ApplyCanBePushed: Udf" << Endl;
+            bool udfResult = UdfCanBePushed(udf.Cast(), apply.Ref().ChildrenList());
+            if (!udfResult) {
+                // Cout << "ApplyCanBePushed: Udf: false" << Endl;
                 return false;
             }
-        }
+        } 
 
         // Check arguments
         for (size_t i = 1; i < apply.Ref().ChildrenSize(); ++i) {
+            Cout << "ApplyCanBePushed: Child " << i << Endl;
             if (!CheckExpressionNodeForPushdown(TExprBase(apply.Ref().Child(i)))) {
                 return false;
             }
         }
+
+        Cout << "ApplyCanBePushed: true" << Endl;
         return true;
     }
 
