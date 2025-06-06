@@ -12,6 +12,7 @@
 #include <ydb/library/yql/utils/plan/plan_utils.h>
 #include <yql/essentials/ast/yql_expr.h>
 #include <yql/essentials/providers/common/dq/yql_dq_integration_impl.h>
+#include <yql/essentials/providers/common/provider/yql_provider.h>
 #include <yql/essentials/utils/log/log.h>
 
 namespace NYql {
@@ -217,6 +218,8 @@ namespace NYql {
                         auto type = NConnector::GetColumnTypeByName(tableMeta->Schema, columnName);
                         *column->mutable_type() = type;
                     }
+
+                    Cout << "FillSourceSettings: " << NCommon::ExprToPrettyString(ctx, settings.FilterPredicate().Ref()) << Endl;
 
                     if (auto predicate = settings.FilterPredicate(); !IsEmptyFilterPredicate(predicate)) {
                         TStringBuilder err;

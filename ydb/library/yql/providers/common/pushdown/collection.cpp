@@ -1,6 +1,7 @@
 #include "collection.h"
 
 #include <yql/essentials/core/yql_expr_type_annotation.h>
+#include <yql/essentials/providers/common/provider/yql_provider.h>
 #include <yql/essentials/utils/log/log.h>
 
 #include <vector>
@@ -31,17 +32,25 @@ public:
     {}
 
     void MarkupPredicates(const TExprBase& predicate, TPredicateNode& predicateTree) {
+        Cout << "MarkupPredicates: " << NCommon::ExprToPrettyString(Ctx, predicate.Ref()) << Endl; 
+
         if (auto coalesce = predicate.Maybe<TCoCoalesce>()) {
+            Cout << "Branch: TCoCoalesce" << Endl;
             if (Settings.IsEnabled(EFlag::JustPassthroughOperators)) {
+                Cout << "  Sub-branch: JustPassthroughOperators enabled" << Endl;
                 CollectChildrenPredicates(predicate, predicateTree);
             } else {
+                Cout << "  Sub-branch: JustPassthroughOperators disabled" << Endl;
                 predicateTree.CanBePushed = CoalesceCanBePushed(coalesce.Cast());
             }
         } else if (auto compare = predicate.Maybe<TCoCompare>()) {
+            Cout << "Branch: TCoCompare" << Endl;
             predicateTree.CanBePushed = CompareCanBePushed(compare.Cast());
         } else if (auto exists = predicate.Maybe<TCoExists>()) {
+            Cout << "Branch: TCoExists" << Endl;
             predicateTree.CanBePushed = ExistsCanBePushed(exists.Cast());
         } else if (auto notOp = predicate.Maybe<TCoNot>()) {
+            Cout << "Branch: TCoNot" << Endl;
             const auto value = notOp.Cast().Value();
             TPredicateNode child(value);
             MarkupPredicates(value, child);
@@ -49,27 +58,37 @@ public:
             predicateTree.CanBePushed = child.CanBePushed;
             predicateTree.Children.emplace_back(child);
         } else if (predicate.Maybe<TCoAnd>()) {
+            Cout << "Branch: TCoAnd" << Endl;
             predicateTree.Op = EBoolOp::And;
             CollectChildrenPredicates(predicate, predicateTree);
         } else if (predicate.Maybe<TCoOr>()) {
+            Cout << "Branch: TCoOr" << Endl;
             predicateTree.Op = EBoolOp::Or;
             CollectChildrenPredicates(predicate, predicateTree);
         } else if (Settings.IsEnabled(EFlag::LogicalXorOperator) && predicate.Maybe<TCoXor>()) {
+            Cout << "Branch: TCoXor (LogicalXorOperator enabled)" << Endl;
             predicateTree.Op = EBoolOp::Xor;
             CollectChildrenPredicates(predicate, predicateTree);
         } else if (auto jsonExists = predicate.Maybe<TCoJsonExists>()) {
+            Cout << "Branch: TCoJsonExists" << Endl;
             predicateTree.CanBePushed = JsonExistsCanBePushed(jsonExists.Cast());
         } else if (Settings.IsEnabled(EFlag::JustPassthroughOperators) && (predicate.Maybe<TCoIf>() || predicate.Maybe<TCoJust>())) {
+            Cout << "Branch: TCoIf or TCoJust (JustPassthroughOperators enabled)" << Endl;
             CollectChildrenPredicates(predicate, predicateTree);
         } else if (auto sqlIn = predicate.Maybe<TCoSqlIn>()) {
+            Cout << "Branch: TCoSqlIn" << Endl;
             predicateTree.CanBePushed = SqlInCanBePushed(sqlIn.Cast());
         } else if (predicate.Ref().IsCallable({"IsNotDistinctFrom", "IsDistinctFrom"})) {
+            Cout << "Branch: IsNotDistinctFrom or IsDistinctFrom" << Endl;
             predicateTree.CanBePushed = IsDistinctCanBePushed(predicate);
         } else if (auto apply = predicate.Maybe<TCoApply>()) {
+            Cout << "Branch: TCoApply" << Endl;
             predicateTree.CanBePushed = ApplyCanBePushed(apply.Cast());
         } else if (Settings.IsEnabled(EFlag::ExpressionAsPredicate)) {
+            Cout << "Branch: ExpressionAsPredicate enabled" << Endl;
             predicateTree.CanBePushed = CheckExpressionNodeForPushdown(predicate);
         } else {
+            Cout << "Branch: Default (no matching predicate type)" << Endl;
             predicateTree.CanBePushed = false;
         }
     }
