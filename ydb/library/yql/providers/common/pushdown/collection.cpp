@@ -658,90 +658,76 @@ private:
     }
 
     bool UdfCanBePushed(const TCoUdf& udf, const TExprNode::TListType& children) {
+        Cout << "UdfCanBePushed: " << Endl;
         const TString functionName(udf.MethodName());
         if (!Settings.IsEnabledFunction(functionName)) {
+            Cout << "UdfCanBePushed: U1: " << functionName << Endl;
             return false;
         }
 
         if (functionName == "Re2.Grep") {
+            Cout << "UdfCanBePushed: U2" << Endl;
             if (children.size() != 2) {
+            Cout << "UdfCanBePushed: U3" << Endl;
                 // Expected exactly one argument (first child of apply is callable)
                 return false;
             }
 
             const auto& udfSettings = udf.Settings();
             if (udfSettings && !udfSettings.Cast().Empty()) {
+            Cout << "UdfCanBePushed: U4" << Endl;
                 // Expected empty udf settings
                 return false;
             }
 
             const auto& maybeRunConfig = udf.RunConfigValue();
             if (!maybeRunConfig) {
+            Cout << "UdfCanBePushed: U5" << Endl;
                 // Expected non empty run config
                 return false;
             }
             const auto& runConfig = maybeRunConfig.Cast().Ref();
 
             if (runConfig.ChildrenSize() != 2) {
+            Cout << "UdfCanBePushed: U6" << Endl;
                 // Expected exactly two run config settings
                 return false;
             }
             if (!TExprBase(runConfig.Child(1)).Maybe<TCoNothing>()) {
+            Cout << "UdfCanBePushed: U7" << Endl;
                 // Expected empty regexp settings
                 return false;
             }
 
             return CheckExpressionNodeForPushdown(TExprBase(runConfig.Child(0)));
         }
+
+            Cout << "UdfCanBePushed: U8" << Endl;
         return false;
     }
-
-    /*
-    (
-        return (
-            Apply (
-                AssumeStrict (
-                    Udf '"Re2.Match" '(
-                        (
-                            Apply $5 ( String '"a%b_c_%d")
-                        )
-                        (
-                            Just (
-                                NamedApply $11 '() (
-                                    AsStruct '(
-                                        '"CaseSensitive" (
-                                            Just ( Bool '"true")
-                                                         )
-                                              )
-                                                   )
-                                 )
-                        )
-                    ) 
-                        (VoidType) '"" $12 (
-                            TupleType $1 (
-                                OptionalType $8)) '"" '())) (Member _FreeArg0 '"col_01_string")))
-    */
 
     bool ApplyCanBePushed(const TCoApply& apply) {
         Cout << "ApplyCanBePushed: start: " << NCommon::ExprToPrettyString(Ctx, apply.Ref()) << Endl;
 
-        // Cout << "OLOLO: " << apply.Raw()->IsCallable("AssumeStrict") << Endl;
-        // Cout << "OLOLO: " << apply.Raw()->Head().IsCallable("AssumeStrict") << Endl;
         TMaybeNode<TCoUdf> udf;
         Cout << "A1: " << udf.IsValid() << Endl;
 
         if (auto assumeStrict = apply.Raw()->Head().IsCallable("AssumeStrict") ) {
-            // Cout << "ApplyCanBePushed: AssumeStrict" << Endl;
+            Cout << "ApplyCanBePushed: AssumeStrict" << Endl;
             if (udf = TMaybeNode<TCoUdf>(apply.Raw()->Head().Child(0))) {
                 Cout << "A2: " << udf.IsValid() << Endl;
-                return false;
+                bool udfResult = UdfCanBePushed(udf.Cast(), apply.Raw()->Head().Child(0)->ChildrenList());
+                Cout << "ApplyCanBePushed: AssumeStrict: udfResult: " << udfResult << Endl;
+                if (!udfResult) {
+                    return false;
+                }
             };
 
             return false;
         }
 
         // Check callable
-        if (auto udf = apply.Callable().Maybe<TCoUdf>()) {
+        if (udf = apply.Callable().Maybe<TCoUdf>()) {
             // Cout << "ApplyCanBePushed: Udf" << Endl;
             bool udfResult = UdfCanBePushed(udf.Cast(), apply.Ref().ChildrenList());
             if (!udfResult) {
