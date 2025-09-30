@@ -37,14 +37,17 @@ public:
 
     void AddCredential(const TString& alias, const TCredential& cred);
     void SetUserCredentials(const TUserCredentials& userCredentials) {
+        Cout << "TCredentials::SetUserCredentials: " << userCredentials.OauthToken << Endl;
         UserCredentials_ = userCredentials;
     }
     
     void SetGroups(std::unordered_set<TString>&& groups) {
+        Cout << "TCredentials::SetGroups: " << groups.size() << Endl;
         Groups_ = std::move(groups);
     }
 
     const std::unordered_set<TString>& GetGroups() const {
+        Cout << "TCredentials::GetGroups: " << Groups_.size() << Endl;
         return Groups_;
     }
 

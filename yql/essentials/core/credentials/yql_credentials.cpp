@@ -3,14 +3,17 @@
 namespace NYql {
 
 void TCredentials::AddCredential(const TString& alias, const TCredential& cred) {
+    Cout << "TCredentials::AddCredential: " << alias << ": " << cred.Content << Endl;
     CredentialTable_.emplace(alias, cred);
 }
 
 const TCredential* TCredentials::FindCredential(const TStringBuf& name) const {
+    Cout << "TCredentials::FindCredential: " << name << Endl;
     return CredentialTable_.FindPtr(name);
 }
 
 TString TCredentials::FindCredentialContent(const TStringBuf& name1, const TStringBuf& name2, const TString& defaultContent) const {
+    Cout << "TCredentials::FindCredentialContent: " << name1 << " " << name2 << Endl;
     if (auto cred = FindCredential(name1)) {
         return cred->Content;
     }

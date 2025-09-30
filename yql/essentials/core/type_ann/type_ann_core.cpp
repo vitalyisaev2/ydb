@@ -11476,6 +11476,13 @@ template <NKikimr::NUdf::EDataSlot DataSlot>
             }
         } else if (p0 == "token" || p0 == "cluster") {
             const auto p1 = tokenName.substr(separator + 1);
+
+            Cout << " >>> CRAB: p0=" << p0 << ", p1=" << p1 << Endl;
+
+            ctx.Types.Credentials->ForEach([](const TString& name, const TCredential& cred) {
+                Cout << ">>> CRAB: " << name << ": " << cred.Content << Endl;
+            });
+
             auto cred = ctx.Types.Credentials->FindCredential(p1);
             TMaybe<TCredential> clusterCred;
             if (cred == nullptr && p0 == "cluster") {
