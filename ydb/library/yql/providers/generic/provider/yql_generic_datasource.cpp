@@ -141,6 +141,8 @@ namespace NYql {
             }
 
             void AddCluster(const TString& clusterName, const THashMap<TString, TString>& properties) override {
+                Cout << "TGenericDataSource::AddCluster: " << clusterName << Endl;
+
                 auto authMethod = properties.Value("authMethod", "");
 
                 TString structuredToken = "";

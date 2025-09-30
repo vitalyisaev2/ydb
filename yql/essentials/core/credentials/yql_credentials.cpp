@@ -8,7 +8,7 @@ void TCredentials::AddCredential(const TString& alias, const TCredential& cred) 
 }
 
 const TCredential* TCredentials::FindCredential(const TStringBuf& name) const {
-    Cout << "TCredentials::FindCredential: " << name << Endl;
+    Cout << "TCredentials::FindCredential: " << name << " in map of " << CredentialTable_.size() << " elements" << Endl;
     return CredentialTable_.FindPtr(name);
 }
 

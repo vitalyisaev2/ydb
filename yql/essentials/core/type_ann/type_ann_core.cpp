@@ -11477,11 +11477,7 @@ template <NKikimr::NUdf::EDataSlot DataSlot>
         } else if (p0 == "token" || p0 == "cluster") {
             const auto p1 = tokenName.substr(separator + 1);
 
-            Cout << " >>> CRAB: p0=" << p0 << ", p1=" << p1 << Endl;
-
-            ctx.Types.Credentials->ForEach([](const TString& name, const TCredential& cred) {
-                Cout << ">>> CRAB: " << name << ": " << cred.Content << Endl;
-            });
+            Cout << "SecureParamWrapper (token + cluster): p0=" << p0 << ", p1=" << p1 << Endl;
 
             auto cred = ctx.Types.Credentials->FindCredential(p1);
             TMaybe<TCredential> clusterCred;
@@ -11489,7 +11485,9 @@ template <NKikimr::NUdf::EDataSlot DataSlot>
                 if (p1.StartsWith("default_")) {
                     TStringBuf clusterName = p1;
                     if (clusterName.SkipPrefix("default_")) {
+                        Cout << "SecureParamWrapper: skip prefix" << Endl;
                         for (auto& x : ctx.Types.DataSources) {
+                            Cout << "SecureParamWrapper: DataSources: name=" << x->GetName() << Endl;
                             auto tokens = x->GetClusterTokens();
                             auto token = tokens ? tokens->FindPtr(clusterName) : nullptr;
                             if (token) {
@@ -11499,6 +11497,7 @@ template <NKikimr::NUdf::EDataSlot DataSlot>
                             }
                         }
                         for (auto& x : ctx.Types.DataSinks) {
+                            Cout << "SecureParamWrapper: DataSinks: name=" << x->GetName() << Endl;
                             auto tokens = x->GetClusterTokens();
                             auto token = tokens ? tokens->FindPtr(clusterName) : nullptr;
                             if (token) {
