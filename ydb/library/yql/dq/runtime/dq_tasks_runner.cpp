@@ -913,6 +913,14 @@ public:
     }
 
     const THashMap<TString, TString>& GetSecureParams() const override {
+        Cout << "[TDqTaskRunner::GetSecureParams | library/yql/dq/runtime/dq_tasks_runner.cpp:915] Settings.SecureParams:" << Endl;
+        if (Settings.SecureParams.empty()) {
+            Cout << "  (empty map)" << Endl;
+        } else {
+            for (const auto& [key, value] : Settings.SecureParams) {
+                Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+            }
+        }
         return Settings.SecureParams;
     }
 

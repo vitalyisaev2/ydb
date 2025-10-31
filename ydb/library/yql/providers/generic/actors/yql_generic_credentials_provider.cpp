@@ -5,32 +5,10 @@
 #include <yql/essentials/utils/log/log.h>
 
 namespace NYql::NDq {
-    TGenericCredentialsProvider::TGenericCredentialsProvider(const TString& staticIamToken)
-        : StaticIAMToken_(staticIamToken)
-    {
-    }
-
-    TGenericCredentialsProvider::TGenericCredentialsProvider(
-        const TString& serviceAccountId,
-        const TString& serviceAccountIdSignature,
-        const ISecuredServiceAccountCredentialsFactory::TPtr& credentialsFactory) {
-        Y_ENSURE(!serviceAccountId.empty(), "No service account provided");
-        Y_ENSURE(!serviceAccountIdSignature.empty(), "No service account signature provided");
-        Y_ENSURE(credentialsFactory, "CredentialsFactory is not initialized");
-
-        auto structuredTokenJSON =
-            TStructuredTokenBuilder().SetServiceAccountIdAuth(serviceAccountId, serviceAccountIdSignature).ToJson();
-
-        Y_ENSURE(structuredTokenJSON, "empty structured token");
-
-        auto credentialsProviderFactory =
-            CreateCredentialsProviderFactoryForStructuredToken(credentialsFactory, structuredTokenJSON, false);
-        CredentialsProvider_ = credentialsProviderFactory->CreateProvider();
-    }
-
     TGenericCredentialsProvider::TGenericCredentialsProvider(
         const TString& structuredTokenJSON,
         const ISecuredServiceAccountCredentialsFactory::TPtr& credentialsFactory) {
+        Cout << "[TGenericCredentialsProvider::TGenericCredentialsProvider | library/yql/providers/generic/actors/yql_generic_credentials_provider.cpp:8] structuredTokenJSON parameter: '" << structuredTokenJSON << "'" << Endl;
         Y_ENSURE(!structuredTokenJSON.empty(), "empty structured token");
         Y_ENSURE(credentialsFactory, "CredentialsFactory is not initialized");
 
@@ -63,12 +41,6 @@ namespace NYql::NDq {
 
         *dsi.mutable_credentials()->mutable_token()->mutable_type() = "IAM";
 
-        // 2. If static IAM-token has been provided, use it
-        if (StaticIAMToken_) {
-            *dsi.mutable_credentials()->mutable_token()->mutable_value() = *StaticIAMToken_;
-            return {};
-        }
-
         // 3. Otherwise use credentials provider to get token from Token Accessor
         Y_ENSURE(CredentialsProvider_, "CredentialsProvider is not initialized");
 
@@ -88,18 +60,10 @@ namespace NYql::NDq {
 
     TGenericCredentialsProvider::TPtr
     CreateGenericCredentialsProvider(const TString& structuredTokenJSON,
-                                     /*[[deprecated]]*/ const TString& staticIamToken,
-                                     /*[[deprecated]]*/ const TString& serviceAccountId,
-                                     /*[[deprecated]]*/ const TString& serviceAccountIdSignature,
                                      const ISecuredServiceAccountCredentialsFactory::TPtr& credentialsFactory) {
+        Cout << "[CreateGenericCredentialsProvider | library/yql/providers/generic/actors/yql_generic_credentials_provider.cpp:61] structuredTokenJSON parameter: '" << structuredTokenJSON << "'" << Endl;
         if (!structuredTokenJSON.empty()) {
             return std::make_unique<TGenericCredentialsProvider>(structuredTokenJSON, credentialsFactory);
-        }
-        if (!staticIamToken.empty()) {
-            return std::make_unique<TGenericCredentialsProvider>(staticIamToken);
-        }
-        if (!serviceAccountId.empty() && !serviceAccountIdSignature.empty()) {
-            return std::make_unique<TGenericCredentialsProvider>(serviceAccountId, serviceAccountIdSignature, credentialsFactory);
         }
         return std::make_unique<TGenericCredentialsProvider>();
     }

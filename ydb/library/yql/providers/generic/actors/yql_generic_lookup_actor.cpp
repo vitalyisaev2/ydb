@@ -553,11 +553,18 @@ namespace NYql::NDq {
         const THashMap<TString, TString>& secureParams
     )
     {
+        Cout << "[CreateGenericLookupActor | library/yql/providers/generic/actors/yql_generic_lookup_actor.cpp:553] secureParams contents:" << Endl;
+        if (secureParams.empty()) {
+            Cout << "  (empty map)" << Endl;
+        } else {
+            for (const auto& [key, value] : secureParams) {
+                Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+            }
+        }
+        TString structuredTokenJSON = secureParams.Value(lookupSource.GetTokenName(), TString());
+        Cout << "[CreateGenericLookupActor | library/yql/providers/generic/actors/yql_generic_lookup_actor.cpp:556] structuredTokenJSON from secureParams: '" << structuredTokenJSON << "'" << Endl;
         auto credentialsProvider = NYql::NDq::CreateGenericCredentialsProvider(
-            secureParams.Value(lookupSource.GetTokenName(), TString()),
-            lookupSource.GetToken(),
-            lookupSource.GetServiceAccountId(),
-            lookupSource.GetServiceAccountIdSignature(),
+            structuredTokenJSON,
             securedServiceAccountCredentialsFactory);
         auto guard = Guard(*alloc);
         const auto actor = new TGenericLookupActor(

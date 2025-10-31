@@ -296,6 +296,14 @@ private:
             Stat.AddCounters2(ev->Get()->Sensors);
 
             const auto& secureParams = ev->Get()->SecureParams;
+            Cout << "[TLocalWorkerActor::OnTaskRunnerCreated | library/yql/providers/dq/actors/worker_actor.cpp:298] secureParams from event contents:" << Endl;
+            if (secureParams.empty()) {
+                Cout << "  (empty map)" << Endl;
+            } else {
+                for (const auto& [key, value] : secureParams) {
+                    Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+                }
+            }
             const auto& taskParams = ev->Get()->TaskParams;
             const auto& readRanges = ev->Get()->ReadRanges;
             const auto& typeEnv = ev->Get()->TypeEnv;

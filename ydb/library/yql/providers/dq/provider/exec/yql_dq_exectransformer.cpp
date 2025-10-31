@@ -148,6 +148,14 @@ public:
 
         NDq::TDqTaskRunnerSettings settings;
         settings.OptLLVM = "OFF"; // Don't use LLVM for local execution
+        Cout << "[TDqExecTransformer (context) | library/yql/providers/dq/provider/exec/yql_dq_exectransformer.cpp:151] secureParams before assigning to settings.SecureParams:" << Endl;
+        if (secureParams.empty()) {
+            Cout << "  (empty map)" << Endl;
+        } else {
+            for (const auto& [key, value] : secureParams) {
+                Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+            }
+        }
         settings.SecureParams = secureParams;
         settings.StatsMode = NDqProto::DQ_STATS_MODE_BASIC;
         auto runner = NDq::MakeDqTaskRunner(alloc, executionContext, settings, {});

@@ -72,6 +72,14 @@ void TKqpComputeActor::DoBootstrap() {
         settings.TaskParams[paramsName] = paramsValue;
     }
 
+    Cout << "[TKqpPureComputeActor (context) | core/kqp/compute_actor/kqp_pure_compute_actor.cpp:75] GetTask().GetSecureParams() before populating settings.SecureParams:" << Endl;
+    if (GetTask().GetSecureParams().empty()) {
+        Cout << "  (empty map)" << Endl;
+    } else {
+        for (const auto& [key, value] : GetTask().GetSecureParams()) {
+            Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+        }
+    }
     for (const auto& [paramsName, paramsValue] : GetTask().GetSecureParams()) {
         settings.SecureParams[paramsName] = paramsValue;
     }

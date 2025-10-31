@@ -447,11 +447,18 @@ namespace NYql::NDq {
                                         << ", task_id=" << taskId
                                         << ", partitions_count=" << partitions.size();
 
+        Cout << "[CreateGenericReadActor | library/yql/providers/generic/actors/yql_generic_read_actor.cpp:429] secureParams contents:" << Endl;
+        if (secureParams.empty()) {
+            Cout << "  (empty map)" << Endl;
+        } else {
+            for (const auto& [key, value] : secureParams) {
+                Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+            }
+        }
+        TString structuredTokenJSON = secureParams.Value(source.GetTokenName(), "");
+        Cout << "[CreateGenericReadActor | library/yql/providers/generic/actors/yql_generic_read_actor.cpp:450] structuredTokenJSON from secureParams: '" << structuredTokenJSON << "'" << Endl;
         auto tokenProvider = CreateGenericCredentialsProvider(
-            secureParams.Value(source.GetTokenName(), ""),
-            source.GetToken(),
-            source.GetServiceAccountId(),
-            source.GetServiceAccountIdSignature(),
+            structuredTokenJSON,
             credentialsFactory);
 
         const auto actor = new TGenericReadActor(
