@@ -248,6 +248,14 @@ public:
                 }
             }
         }
+        Cout << "[TLocalTasksRunner (context) | library/yql/providers/dq/task_runner/tasks_runner_local.cpp:251] taskMeta.GetSecureParams() before populating settings.SecureParams:" << Endl;
+        if (taskMeta.GetSecureParams().empty()) {
+            Cout << "  (empty map)" << Endl;
+        } else {
+            for (const auto& [key, value] : taskMeta.GetSecureParams()) {
+                Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+            }
+        }
         for (const auto& x : taskMeta.GetSecureParams()) {
             settings.SecureParams[x.first] = x.second;
         }

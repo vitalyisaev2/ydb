@@ -657,8 +657,17 @@ private:
             }
         }
 
+        const auto& secureParams = TaskRunner->GetSecureParams();
+        Cout << "[TLocalTaskRunnerActor (context) | library/yql/dq/actors/task_runner/task_runner_actor_local.cpp:660] secureParams from TaskRunner->GetSecureParams():" << Endl;
+        if (secureParams.empty()) {
+            Cout << "  (empty map)" << Endl;
+        } else {
+            for (const auto& [key, value] : secureParams) {
+                Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+            }
+        }
         auto event = MakeHolder<TEvTaskRunnerCreateFinished>(
-            TaskRunner->GetSecureParams(),
+            secureParams,
             TaskRunner->GetTaskParams(),
             TaskRunner->GetReadRanges(),
             TaskRunner->GetTypeEnv(),

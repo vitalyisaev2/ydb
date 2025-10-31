@@ -284,10 +284,19 @@ protected:
             sink.Buffer = TaskRunner->GetSink(outputIndex);
         }
 
+        const auto& secureParams = TaskRunner->GetSecureParams();
+        Cout << "[TDqSyncComputeActorBase (context) | library/yql/dq/actors/compute/dq_sync_compute_actor_base.h:290] secureParams from TaskRunner->GetSecureParams():" << Endl;
+        if (secureParams.empty()) {
+            Cout << "  (empty map)" << Endl;
+        } else {
+            for (const auto& [key, value] : secureParams) {
+                Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+            }
+        }
         TBase::FillIoMaps(
             TaskRunner->GetHolderFactory(),
             TaskRunner->GetTypeEnv(),
-            TaskRunner->GetSecureParams(),
+            secureParams,
             TaskRunner->GetTaskParams(),
             TaskRunner->GetReadRanges(),
             TaskRunner->GetRandomProvider()

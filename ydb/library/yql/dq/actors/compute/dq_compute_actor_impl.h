@@ -1353,6 +1353,14 @@ protected:
         IRandomProvider* randomProvider
         )
     {
+        Cout << "[TDqComputeActorBase::FillIoMaps | library/yql/dq/actors/compute/dq_compute_actor_impl.h:1350] secureParams parameter:" << Endl;
+        if (secureParams.empty()) {
+            Cout << "  (empty map)" << Endl;
+        } else {
+            for (const auto& [key, value] : secureParams) {
+                Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+            }
+        }
         auto collectStatsLevel = StatsModeToCollectStatsLevel(RuntimeSettings.StatsMode);
         for (auto& [inputIndex, source] : SourcesMap) {
             Y_ABORT_UNLESS(AsyncIoFactory);
@@ -1398,6 +1406,14 @@ protected:
             CA_LOG_D("Create transform for input " << inputIndex << " " << inputDesc.ShortDebugString());
             try {
                 auto guard = BindAllocator();
+                // Cout << "[TDqComputeActorBase (context) | library/yql/dq/actors/compute/dq_compute_actor_impl.h:1409] secureParams before creating TInputTransformArguments:" << Endl;
+                // if (secureParams.empty()) {
+                //     Cout << "  (empty map)" << Endl;
+                // } else {
+                //     for (const auto& [key, value] : secureParams) {
+                //         Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+                //     }
+                // }
                 std::tie(transform.AsyncInput, transform.Actor) = AsyncIoFactory->CreateDqInputTransform(
                     IDqAsyncIoFactory::TInputTransformArguments {
                         .InputDesc = inputDesc,

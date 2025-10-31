@@ -642,8 +642,17 @@ private:
                 i64 val = (TInstant::Now()-startTime).MicroSeconds();
                 sensors.push_back({sensorName, val, val, val, val, 1});
 
+                const auto& secureParams = taskRunner->GetSecureParams();
+                Cout << "[TTaskRunnerActor (context) | library/yql/providers/dq/task_runner_actor/task_runner_actor.cpp:645] secureParams from taskRunner->GetSecureParams():" << Endl;
+                if (secureParams.empty()) {
+                    Cout << "  (empty map)" << Endl;
+                } else {
+                    for (const auto& [key, value] : secureParams) {
+                        Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+                    }
+                }
                 auto event = MakeHolder<TEvTaskRunnerCreateFinished>(
-                    taskRunner->GetSecureParams(),
+                    secureParams,
                     taskRunner->GetTaskParams(),
                     taskRunner->GetReadRanges(),
                     taskRunner->GetTypeEnv(),

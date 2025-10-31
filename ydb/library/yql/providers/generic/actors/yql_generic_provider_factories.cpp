@@ -13,6 +13,14 @@ namespace NYql::NDq {
         auto readActorFactory = [securedServiceAccountCredentialsFactory, genericClient](
                                     Generic::TSource&& settings,
                                     IDqAsyncIoFactory::TSourceArguments&& args) {
+            Cout << "[readActorFactory lambda | library/yql/providers/generic/actors/yql_generic_provider_factories.cpp:13] args.SecureParams contents:" << Endl;
+            if (args.SecureParams.empty()) {
+                Cout << "  (empty map)" << Endl;
+            } else {
+                for (const auto& [key, value] : args.SecureParams) {
+                    Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+                }
+            }
             return CreateGenericReadActor(
                 genericClient,
                 std::move(settings),
@@ -28,6 +36,14 @@ namespace NYql::NDq {
         };
 
         auto lookupActorFactory = [securedServiceAccountCredentialsFactory, genericClient](Generic::TLookupSource&& lookupSource, IDqAsyncIoFactory::TLookupSourceArguments&& args) {
+            Cout << "[lookupActorFactory lambda | library/yql/providers/generic/actors/yql_generic_provider_factories.cpp:30] args.SecureParams contents:" << Endl;
+            if (args.SecureParams.empty()) {
+                Cout << "  (empty map)" << Endl;
+            } else {
+                for (const auto& [key, value] : args.SecureParams) {
+                    Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+                }
+            }
             return CreateGenericLookupActor(
                 genericClient,
                 securedServiceAccountCredentialsFactory,

@@ -8,6 +8,7 @@ namespace NYql::NDq {
     TGenericCredentialsProvider::TGenericCredentialsProvider(
         const TString& structuredTokenJSON,
         const ISecuredServiceAccountCredentialsFactory::TPtr& credentialsFactory) {
+        Cout << "[TGenericCredentialsProvider::TGenericCredentialsProvider | library/yql/providers/generic/actors/yql_generic_credentials_provider.cpp:8] structuredTokenJSON parameter: '" << structuredTokenJSON << "'" << Endl;
         Y_ENSURE(!structuredTokenJSON.empty(), "empty structured token");
         Y_ENSURE(credentialsFactory, "CredentialsFactory is not initialized");
 
@@ -60,6 +61,7 @@ namespace NYql::NDq {
     TGenericCredentialsProvider::TPtr
     CreateGenericCredentialsProvider(const TString& structuredTokenJSON,
                                      const ISecuredServiceAccountCredentialsFactory::TPtr& credentialsFactory) {
+        Cout << "[CreateGenericCredentialsProvider | library/yql/providers/generic/actors/yql_generic_credentials_provider.cpp:61] structuredTokenJSON parameter: '" << structuredTokenJSON << "'" << Endl;
         if (!structuredTokenJSON.empty()) {
             return std::make_unique<TGenericCredentialsProvider>(structuredTokenJSON, credentialsFactory);
         }

@@ -80,6 +80,14 @@ public:
         , ReadyQueue(OutputRowType)
         , LastLruSize(0)
     {
+        Cout << "[TInputTransformStreamLookupCommonBase::TInputTransformStreamLookupCommonBase | library/yql/dq/actors/input_transforms/dq_input_transform_lookup.cpp:65] SecureParams member after initialization:" << Endl;
+        if (SecureParams.empty()) {
+            Cout << "  (empty map)" << Endl;
+        } else {
+            for (const auto& [key, value] : SecureParams) {
+                Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+            }
+        }
         Y_ABORT_UNLESS(Alloc);
         for (size_t i = 0; i != LookupInputIndexes.size(); ++i) {
             Y_DEBUG_ABORT_UNLESS(LookupInputIndexes[i] < InputRowType->GetElementsCount());
@@ -149,6 +157,14 @@ private: //IDqComputeActorAsyncInput
         if (!KeysForLookup) {
             Y_ENSURE(this->SelfId());
             Y_ENSURE(!LookupSourceId);
+            Cout << "[TInputTransformStreamLookupCommonBase::GetKeysForLookup | library/yql/dq/actors/input_transforms/dq_input_transform_lookup.cpp:152] SecureParams contents before creating lookupSourceArgs:" << Endl;
+            if (SecureParams.empty()) {
+                Cout << "  (empty map)" << Endl;
+            } else {
+                for (const auto& [key, value] : SecureParams) {
+                    Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+                }
+            }
             NDq::IDqAsyncIoFactory::TLookupSourceArguments lookupSourceArgs {
                 .Alloc = Alloc,
                 .KeyTypeHelper = KeyTypeHelper,
@@ -1042,6 +1058,14 @@ std::pair<IDqComputeActorAsyncInput*, NActors::IActor*> CreateInputTransformStre
     IDqAsyncIoFactory::TInputTransformArguments&& args
 )
 {
+    Cout << "[CreateInputTransformStreamLookup | library/yql/dq/actors/input_transforms/dq_input_transform_lookup.cpp:1039] args.SecureParams contents:" << Endl;
+    if (args.SecureParams.empty()) {
+        Cout << "  (empty map)" << Endl;
+    } else {
+        for (const auto& [key, value] : args.SecureParams) {
+            Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+        }
+    }
     const auto narrowInputRowType = DeserializeStructType(settings.GetNarrowInputRowType(), args.TypeEnv);
     const auto narrowOutputRowType = DeserializeStructType(settings.GetNarrowOutputRowType(), args.TypeEnv);
 

@@ -747,6 +747,14 @@ public:
             default: break;
             }
             settings.TerminateOnError = TerminateOnError;
+            Cout << "[TTaskCommandExecutor (context) | library/yql/providers/dq/runtime/task_command_executor.cpp:750] taskMeta.GetSecureParams() before populating settings.SecureParams:" << Endl;
+            if (taskMeta.GetSecureParams().empty()) {
+                Cout << "  (empty map)" << Endl;
+            } else {
+                for (const auto& [key, value] : taskMeta.GetSecureParams()) {
+                    Cout << "  key: '" << key << "' -> value: '" << value << "'" << Endl;
+                }
+            }
             for (const auto& x: taskMeta.GetSecureParams()) {
                 settings.SecureParams[x.first] = x.second;
                 YQL_CLOG(DEBUG, ProviderDq) << "SecureParam " << x.first << ":XXX";
